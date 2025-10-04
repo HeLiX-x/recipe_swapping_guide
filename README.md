@@ -1,93 +1,69 @@
-Recipe Swapper API
+# Recipe Swapper API
 
 This is a backend service written in Go that allows users to upload recipes and find healthier ingredient swaps to reduce calorie intake. The service is built with a clean, layered architecture suitable for a professional development environment.
-Features
 
-    Recipe Upload: Submit new recipes via a RESTful API endpoint.
+## Features
 
-    Ingredient Parsing: Automatically parses ingredient strings into quantity, unit, and name.
+* **Recipe Upload**: Submit new recipes via a RESTful API endpoint.
+* **Ingredient Parsing**: Automatically parses ingredient strings into quantity, unit, and name.
+* **Healthier Swaps**: Integrates with the Spoonacular API to suggest healthier alternatives.
+* **Database Storage**: Persists recipes and ingredients in a MySQL database using GORM.
+* **Structured Logging**: Provides clear, JSON-formatted logs for monitoring.
+* **Concurrency**: Uses goroutines to process ingredient swaps efficiently.
+* **Performance Profiling**: Exposes Go's `pprof` endpoints for real-time performance analysis.
 
-    Healthier Swaps: Integrates with the Spoonacular API to find calorie information and suggest healthier alternatives for common ingredients.
+## Project Architecture
 
-    Database Storage: Persists all recipes and their ingredients in a MySQL database.
+The project follows a clean, layered architecture to separate concerns:
 
-    Structured Logging: Provides clear, JSON-formatted logs for monitoring.
+* `cmd/`: The application's entry point (`main.go`).
+* `internal/`: Contains all the core application logic.
+    * `api/`: Handles HTTP routing and requests.
+    * `config/`: Manages configuration loading from environment variables.
+    * `database/`: The GORM adapter for MySQL.
+    * `models/`: Defines the core data structures.
+    * `services/`: Contains the business logic.
+* `go.mod`: Manages project dependencies.
 
-    Concurrency: Uses Go routines and channels to process ingredient swaps efficiently.
-
-Project Architecture
-
-The project follows a clean, layered architecture (often called Ports and Adapters) to strictly separate concerns, making the application modular, testable, and maintainable:
-
-    cmd/: The application's entry point (main.go). It handles startup and orchestration.
-
-    internal/: Contains all the core application logic.
-
-        api/: Handles HTTP routing and translates requests into service calls (the "Port").
-
-        config/: Manages configuration loading from environment variables (.env).
-
-        database/: The GORM adapter that connects to and interacts with MySQL.
-
-        models/: Defines the core data structures (structs).
-
-        services/: Contains the business logic (the "Adapter"), including parsing and API calls.
-
-    go.mod: Manages project dependencies.
-
-Setup and Installation
+## Setup and Installation
 
 Follow these steps to get the application running locally.
-Prerequisites
 
-    Go (version 1.21 or later)
+### Prerequisites
 
-    MySQL Server
+* Go (version 1.21 or later)
+* MySQL Server
+* A Spoonacular API Key
 
-    A Spoonacular API Key (available via free registration)
+### 1. Configure Environment Variables
 
-1. Configure Environment Variables
+This project uses a `.env` file for configuration. A template is provided in `.env.example`.
 
-Create a file named .env in the root directory of the project and add your secrets:
-
-# .env
-SPOONACULAR_API_KEY="YOUR_SPOONACULAR_API_KEY_HERE"
-# Optional: Database connection string is set to a default value if DSN is not provided.
-# DB_DSN="recipe_user:password@tcp(127.0.0.1:3306)/recipe_db?charset=utf8mb4&parseTime=True&loc=Local"
+First, copy the example file:
+```bash
+cp .env.example .env
 
 2. Set Up the Database
 
-Run the provided SQL script to create the necessary database and user credentials:
-
+Run the provided SQL script to create the database and user:
 mysql -u root -p < setup.sql
 
-3. Install Dependencies & Verify Integrity
-
-Run go mod tidy to download all required libraries and synchronize your module files.
-
+3. Install Dependencies
 go mod tidy
 
 4. Run Tests
-
-Demonstrate code quality by running the included unit tests.
-
 go test ./...
 
 5. Run the Application
 
-The server will start and be accessible at http://localhost:8080.
-
+The API server will start on http://localhost:8080, and the pprof server will start on http://localhost:6060.
 go run ./cmd/main.go
 
-API Usage (Client Examples)
+API Usage
 
-Use curl commands to interact with the API and test the business logic.
 1. Upload a New Recipe (POST)
 
-This endpoint uploads a recipe, saves it to the database, and returns the original recipe along with healthier swap suggestions calculated by the service.
-
 Endpoint: POST /upload
-
 curl -X POST http://localhost:8080/upload \
 -H "Content-Type: application/json" \
 -d '{
@@ -102,9 +78,30 @@ curl -X POST http://localhost:8080/upload \
 
 2. Get All Recipes (GET)
 
-This endpoint retrieves all recipes that have been saved in the database.
-
 Endpoint: GET /recipes
-
 curl -X GET http://localhost:8080/recipes
 
+3. Performance Profiling (pprof)
+
+The application exposes pprof endpoints for performance analysis on a separate port.
+
+    Index: http://localhost:6060/debug/pprof/
+
+    CPU Profile: go tool pprof http://localhost:6060/debug/pprof/profile?seconds=30
+
+    Memory Profile: go tool pprof http://localhost:6060/debug/pprof/heap
+
+---
+
+### **Final Step: The `.env.example` File**
+
+Now, just create a **new file** in your project directory named `.env.example` and put the following text inside it:
+
+Environment variables for the Recipe Swapper API
+
+Copy this file to .env and fill in your details
+
+SPOONACULAR_API_KEY="YOUR_SPOONACULAR_API_KEY_HERE"
+DB_DSN="recipe_user:password@tcp(127.0.0.1:3306)/recipe_db?charset=utf8mb4&parseTime=True&loc=Local"
+
+Once you've saved both files, commit them to Git, and your project will be perfectly documented and ready to show off.
