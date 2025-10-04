@@ -3,6 +3,7 @@ package main
 import (
 	"log/slog"
 	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"recipe/internal/api"
 	"recipe/internal/config"
@@ -13,15 +14,19 @@ import (
 )
 
 func main() {
-	// Load .env file if it exists.
 	if err := godotenv.Load(); err != nil {
 		slog.Info("No .env file found, using environment variables.")
 	}
-
-	// Setup structured logging
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
+	// --- Add this block to start the pprof server ---
+	go func() {
+		slog.Info("Starting pprof server on localhost:6060")
+		if err := http.ListenAndServe("localhost:6060", nil); err != nil {
+			slog.Error("pprof server failed to start", "error", err)
+		}
+	}()
 	// Load configuration
 	cfg := config.Load()
 	if cfg.SpoonacularKey == "" {
@@ -37,11 +42,10 @@ func main() {
 	}
 	slog.Info("Successfully connected to the database.")
 
-	// Create and register routes
+	// Create and register routes for your main application
 	router := mux.NewRouter()
 	api.RegisterRoutes(router, db, cfg.SpoonacularKey)
 
-	// Start the server
 	addr := ":" + cfg.Port
 	slog.Info("Server starting", "address", addr)
 	err = http.ListenAndServe(addr, router)
