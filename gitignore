@@ -1,0 +1,10 @@
+.env file
+
+.env
+Go binaries
+
+recipe
+OS-specific files
+
+.DS_Store
+*.swp
